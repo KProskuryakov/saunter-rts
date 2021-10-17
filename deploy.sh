@@ -13,6 +13,7 @@ cd dist
 echo 'www.saunter.dev' > CNAME
 
 git init
+git checkout -b main || git checkout main
 git add -A
 git commit -m 'deploy'
 
