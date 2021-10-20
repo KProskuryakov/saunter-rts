@@ -3,27 +3,28 @@ import Phaser from 'phaser';
 class Scene extends Phaser.Scene {  
 
   preload() {
-    this.load.setBaseURL('https://labs.phaser.io');
-
-    // this.load.image('sky', 'assets/skies/space3.png');
-    // this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-    // this.load.image('red', 'assets/particles/red.png');
-
-    this.load.image('mushroom', 'assets/sprites/mushroom16x16.png');
-    
+    this.load.image('catgirl', 'assets/catgirl-forward.png');
+    this.load.image('mushroom', 'https://labs.phaser.io/assets/sprites/mushroom16x16.png');
   }
 
   create() {
-    const unit1 = this.physics.add.sprite(50, 100, 'mushroom').setCollideWorldBounds(true);
-    const unit2 = this.physics.add.sprite(50, 150, 'mushroom').setCollideWorldBounds(true);
-    const unit3 = this.physics.add.sprite(50, 200, 'mushroom').setCollideWorldBounds(true);
+    const spriteBounds = Phaser.Geom.Rectangle.Inflate(Phaser.Geom.Rectangle.Clone(this.physics.world.bounds), -20, -20);
+    const sprites: Phaser.GameObjects.Sprite[] = []
+    for (let i = 0; i < 5; i++) {
+      const pos = Phaser.Geom.Rectangle.Random(spriteBounds, new Phaser.Geom.Point());
+      const mushroom = this.physics.add.sprite(pos.x, pos.y, 'mushroom').setCollideWorldBounds(true);
+      sprites.push(mushroom);
+    }
+    for (let i = 0; i < 5; i++) {
+      const pos = Phaser.Geom.Rectangle.Random(spriteBounds, new Phaser.Geom.Point());
+      const catgirl = this.physics.add.sprite(pos.x, pos.y, 'catgirl').setCollideWorldBounds(true);
+      sprites.push(catgirl);
+    }
 
     let dragbox = this.add.graphics();
     let drawDragbox = false;
 
-    this.add.rectangle(399, 299, 50, 50, 0xff00ff);
-
-    this.input.on('pointerdown', function(pointer: Phaser.Input.Pointer) {
+    this.input.on('pointerdown', function() {
       drawDragbox = true;
     });
 
@@ -35,28 +36,26 @@ class Scene extends Phaser.Scene {
       }
     });
 
-    this.input.on('pointerup', function(pointer: Phaser.Input.Pointer) {
+    this.input.on('pointerup', function(this: Scene, pointer: Phaser.Input.Pointer) {
+      sprites.forEach(sprite => {
+        sprite.setTint(0xffffff);
+      });
       drawDragbox = false;
       dragbox.clear();
-    });
+      const boxX = Math.min(pointer.downX, pointer.x);
+      const boxY = Math.min(pointer.downY, pointer.y);
+      const width = Math.abs(pointer.x - pointer.downX);
+      const height = Math.abs(pointer.y - pointer.downY);
+      this.physics.overlapRect(boxX, boxY, width, height, true, false).forEach((body) => {
+        const obj = body.gameObject;
+        
+        if (obj instanceof Phaser.GameObjects.Sprite) {
+          obj.setTint(0x00ff00);
+        }
+        
+      });
+    }, this);
 
-    // this.add.image(400, 300, 'sky');
-
-    // const particles = this.add.particles('red');
-  
-    // const emitter = particles.createEmitter({
-    //   speed: 100,
-    //   scale: { start: 1, end: 0 },
-    //   blendMode: 'ADD'
-    // });
-  
-    // const logo = this.physics.add.image(400, 100, 'logo');
-  
-    // logo.setVelocity(100, 200);
-    // logo.setBounce(1, 1);
-    // logo.setCollideWorldBounds(true);
-  
-    // emitter.startFollow(logo);
   }
 
   update() {
