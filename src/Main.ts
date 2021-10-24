@@ -57,6 +57,8 @@ class GameScene extends Phaser.Scene {
     this.load.image('mushroom', 'https://labs.phaser.io/assets/sprites/mushroom16x16.png');
 
     this.load.audio('lasergun', 'assets/KP_LaserGun01.ogg');
+
+    this.load.audio('background-placehold', 'assets/placehold.ogg');
   }
 
   create() {
@@ -157,6 +159,8 @@ class GameScene extends Phaser.Scene {
       });
       
     }});
+
+    this.sound.play('background-placehold', {loop: true, volume: 0.3});
 
     this.scene.launch('UIScene');
 
