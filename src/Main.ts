@@ -55,6 +55,8 @@ class GameScene extends Phaser.Scene {
   preload() {
     this.load.image('catgirl', 'assets/catgirl-forward.png');
     this.load.image('mushroom', 'https://labs.phaser.io/assets/sprites/mushroom16x16.png');
+
+    this.load.audio('lasergun', 'assets/KP_LaserGun01.ogg');
   }
 
   create() {
@@ -68,6 +70,8 @@ class GameScene extends Phaser.Scene {
     const uiScene = this.scene.get('UIScene') as UIScene;
 
     const spriteInnerBounds = Phaser.Geom.Rectangle.Inflate(Phaser.Geom.Rectangle.Clone(this.cameras.main.getBounds()), -1600, -800);
+
+    const spriteInnerBounds2 = Phaser.Geom.Rectangle.Inflate(Phaser.Geom.Rectangle.Clone(this.cameras.main.getBounds()), -1400, -600);
     const spriteOuterBounds = Phaser.Geom.Rectangle.Inflate(Phaser.Geom.Rectangle.Clone(this.cameras.main.getBounds()), -20, -20);
 
     for (let i = 0; i < 20; i++) {
@@ -77,8 +81,8 @@ class GameScene extends Phaser.Scene {
       this.units.add(catgirl);
     }
 
-    for (let i = 0; i < 100; i++) {
-      const pos = Phaser.Geom.Rectangle.RandomOutside(spriteOuterBounds, spriteInnerBounds, new Phaser.Geom.Point());
+    for (let i = 0; i < 1000; i++) {
+      const pos = Phaser.Geom.Rectangle.RandomOutside(spriteOuterBounds, spriteInnerBounds2, new Phaser.Geom.Point());
       const mushroom = this.physics.add.existing(new Unit(this, pos.x, pos.y, 'mushroom'));
       mushroom.speed = 75;
       mushroom.atkrange = 25;
@@ -96,7 +100,13 @@ class GameScene extends Phaser.Scene {
     }, this);
 
     this.input.on('wheel', function (this: GameScene, pointer: Phaser.Input.Pointer) {
-      this.cameras.main.zoom = Phaser.Math.Clamp(this.cameras.main.zoom - .25 * Math.sign(pointer.deltaY), 0.5, 1.5)
+      const newZoom = Phaser.Math.Clamp(this.cameras.main.zoom - .25 * Math.sign(pointer.deltaY), 0.5, 1.5);
+
+      if (this.cameras.main.zoom !== newZoom) {
+        this.cameras.main.pan(pointer.worldX, pointer.worldY, 150);
+      }
+
+      this.cameras.main.zoomTo(newZoom, 150);
     });
 
     this.input.on('pointerup', function (this: GameScene, pointer: Phaser.Input.Pointer, clickedObjects: Phaser.GameObjects.GameObject[]) {
@@ -138,7 +148,7 @@ class GameScene extends Phaser.Scene {
     this.aggroTimer = this.time.addEvent({delay: 200, callbackScope: this, loop: true, callback: function(this: GameScene) {
       this.units.forEach(u => {
         const closestEnemy = this.physics.closest(u, Array.from(this.units).filter(e => e.faction !== u.faction)) as Unit;
-        if (u.target === undefined && Phaser.Math.Distance.BetweenPoints(u, closestEnemy) <= u.aggrorange) {
+        if (u.target === undefined && closestEnemy && Phaser.Math.Distance.BetweenPoints(u, closestEnemy) <= u.aggrorange) {
           u.target = closestEnemy;
         } else {
           u.target = undefined;
@@ -179,6 +189,7 @@ class GameScene extends Phaser.Scene {
           if (u.tta === 0) {
             u.target.hp = Math.max(0, u.target.hp - u.damage);
             u.tta = u.atkdelay;
+            this.sound.play('lasergun', {volume: 0.1});
           }
         }
       }
