@@ -150,6 +150,7 @@ class GameScene extends Phaser.Scene {
         const closestEnemy = this.physics.closest(u, Array.from(this.units).filter(e => e.faction !== u.faction)) as Unit;
         if (u.target === undefined && closestEnemy && Phaser.Math.Distance.BetweenPoints(u, closestEnemy) <= u.aggrorange) {
           u.target = closestEnemy;
+          u.tta = Phaser.Math.RND.integerInRange(0, 150);
         } else {
           u.target = undefined;
         }
